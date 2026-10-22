@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ArsStudio.Views.MessageWindow"
+        Title="ARS Studio"
+        Icon="/Assets/Images/icon.png"
+        Width="320"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        FontSize="12"
+        Background="{StaticResource InkBrush}">
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Name="MessageText"
+                   TextWrapping="Wrap"
+                   Foreground="{StaticResource PaperBrush}" />
+        <Button Theme="{StaticResource PillButton}"
+                Width="100"
+                HorizontalAlignment="Right"
+                Content="OK"
+                IsDefault="True"
+                IsCancel="True"
+                Click="OnOkClick" />
+    </StackPanel>
+</Window>

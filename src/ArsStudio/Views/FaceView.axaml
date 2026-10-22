@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ArsStudio.ViewModels"
+             xmlns:conv="using:ArsStudio.Converters"
+             x:Class="ArsStudio.Views.FaceView"
+             x:DataType="vm:FaceViewModel">
+
+    <ItemsControl ItemsSource="{Binding Stickers}" Margin="2">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <UniformGrid Rows="3" Columns="3" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:StickerViewModel">
+                <Button Theme="{StaticResource StickerButton}"
+                        Margin="1"
+                        Background="{Binding Color, Converter={x:Static conv:CubeColorToBrushConverter.Instance}}"
+                        Command="{Binding PaintCommand}" />
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

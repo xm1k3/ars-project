@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ArsStudio.Core/ArsStudio.Core.csproj" />
+    <Project Path="src/ArsStudio/ArsStudio.csproj" />
+    <Project Path="src/TwoPhaseSolver/TwoPhaseSolver.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ArsStudio.Core.Tests/ArsStudio.Core.Tests.csproj" />
+  </Folder>
+</Solution>
