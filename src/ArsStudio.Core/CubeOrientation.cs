@@ -76,12 +76,12 @@ internal static class CubeOrientation
         else if (facelets[51] == Green)
         {
             Rotate(facelets, RotationAroundUp, 3);
-            code += "5";
+            code += "5 ";
         }
         else if (facelets[52] == Green)
         {
             Rotate(facelets, RotationAroundUp, 2);
-            code = "( ";
+            code += "( ";
         }
 
         return code;
