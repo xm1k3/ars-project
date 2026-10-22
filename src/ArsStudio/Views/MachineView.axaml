@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ArsStudio.ViewModels"
+             xmlns:controls="using:ArsStudio.Controls"
+             x:Class="ArsStudio.Views.MachineView"
+             x:DataType="vm:MachineViewModel">
+
+    <Design.DataContext>
+        <vm:MachineViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Path.icon">
+            <Setter Property="Fill" Value="{StaticResource PaperBrush}" />
+        </Style>
+        <Style Selector="Path.primaryIcon">
+            <Setter Property="Fill" Value="White" />
+        </Style>
+        <Style Selector="TextBlock.description">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFeatures" Value="+lnum" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource PaperBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*,Auto" MaxWidth="1100">
+        <controls:MachineScene Frame="{Binding Frame}" Margin="8,8,8,0" />
+
+        <StackPanel Grid.Row="1" Margin="10" Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="description" Text="{Binding StepCaption}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Classes="caption" Text="{Binding TimeText}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button Theme="{StaticResource TransportButton}" ToolTip.Tip="Inizio" Command="{Binding GoToStartCommand}">
+                        <Path Classes="icon" Data="M0,0 L2,0 L2,10 L0,10 Z M10,0 L10,10 L3,5 Z" />
+                    </Button>
+                    <Button Theme="{StaticResource TransportButton}" ToolTip.Tip="Comando precedente" Command="{Binding StepBackCommand}">
+                        <Path Classes="icon" Data="M8,0 L8,10 L0,5 Z" />
+                    </Button>
+                    <Button Theme="{StaticResource RoundPrimaryButton}" Margin="2,0" ToolTip.Tip="Avvia / pausa" Command="{Binding TogglePlayCommand}">
+                        <Panel>
+                            <Path Classes="primaryIcon" Data="M0,0 L10,6 L0,12 Z" Margin="2,0,0,0" IsVisible="{Binding !IsPlaying}" />
+                            <Path Classes="primaryIcon" Data="M0,0 L3,0 L3,12 L0,12 Z M6,0 L9,0 L9,12 L6,12 Z" IsVisible="{Binding IsPlaying}" />
+                        </Panel>
+                    </Button>
+                    <Button Theme="{StaticResource TransportButton}" ToolTip.Tip="Comando successivo" Command="{Binding StepForwardCommand}">
+                        <Path Classes="icon" Data="M0,0 L8,5 L0,10 Z" />
+                    </Button>
+                    <Button Theme="{StaticResource TransportButton}" ToolTip.Tip="Fine" Command="{Binding GoToEndCommand}">
+                        <Path Classes="icon" Data="M0,0 L7,5 L0,10 Z M8,0 L10,0 L10,10 L8,10 Z" />
+                    </Button>
+                </StackPanel>
+
+                <Slider Grid.Column="1"
+                        Margin="12,0"
+                        VerticalAlignment="Center"
+                        Minimum="0"
+                        Maximum="{Binding StepCount}"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        Value="{Binding CurrentStep}" />
+
+                <Button Grid.Column="2"
+                        Theme="{StaticResource SpeedButton}"
+                        Content="{Binding SpeedText}"
+                        ToolTip.Tip="Velocità rispetto ai tempi reali">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="TopEdgeAlignedRight">
+                            <MenuItem Header="0,5×" Command="{Binding SetSpeedCommand}" CommandParameter="0.5" />
+                            <MenuItem Header="1× (tempo reale)" Command="{Binding SetSpeedCommand}" CommandParameter="1" />
+                            <MenuItem Header="2×" Command="{Binding SetSpeedCommand}" CommandParameter="2" />
+                            <MenuItem Header="5×" Command="{Binding SetSpeedCommand}" CommandParameter="5" />
+                            <MenuItem Header="10×" Command="{Binding SetSpeedCommand}" CommandParameter="10" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>

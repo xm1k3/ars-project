@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <FontFamily x:Key="ContentControlThemeFontFamily">avares://ArsStudio/Assets/Fonts#Raleway</FontFamily>
+
+    <SolidColorBrush x:Key="InkBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="PaperBrush" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="MutedPaperBrush" Color="#8CEBEBEB" />
+    <SolidColorBrush x:Key="MoveChipBrush" Color="#1FEBEBEB" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#33EBEBEB" />
+    <SolidColorBrush x:Key="SidebarBrush" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#19000000" />
+
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Color="#3C00FF" Offset="0" />
+        <GradientStop Color="#48FFFF" Offset="1" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="CubeEmptyBrush" Color="#4CEBEBEB" />
+    <SolidColorBrush x:Key="CubeWhiteBrush" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="CubeYellowBrush" Color="#FFEB3B" />
+    <SolidColorBrush x:Key="CubeOrangeBrush" Color="#FF9800" />
+    <SolidColorBrush x:Key="CubeRedBrush" Color="#F44336" />
+    <SolidColorBrush x:Key="CubeGreenBrush" Color="#4CAF50" />
+    <SolidColorBrush x:Key="CubeBlueBrush" Color="#3F51B5" />
+</ResourceDictionary>
