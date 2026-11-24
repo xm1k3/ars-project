@@ -89,9 +89,26 @@ public static class CubeMoves
     public static bool IsSolved(CubeState state) =>
         Enumerable.Range(0, CubeState.FaceCount).All(face => state.Face((CubeFace)face).Distinct().Count() == 1);
 
-    private static CubeState Turn(CubeState state, GridVector axis, bool wholeCube)
+    internal static int[] Sources(string moves)
     {
-        var result = state.Stickers.ToArray();
+        var sources = Enumerable.Range(0, CubeState.StickerCount).ToArray();
+        foreach (var move in Split(moves).Select(CubeMove.Parse))
+        {
+            for (var turn = 0; turn < move.QuarterTurns; turn++)
+            {
+                sources = Turn(sources, CubeGeometry.AxisOf(move.Face), wholeCube: false);
+            }
+        }
+
+        return sources;
+    }
+
+    private static CubeState Turn(CubeState state, GridVector axis, bool wholeCube) =>
+        new(Turn(state.Stickers.ToArray(), axis, wholeCube));
+
+    private static T[] Turn<T>(T[] values, GridVector axis, bool wholeCube)
+    {
+        var result = (T[])values.Clone();
         for (var i = 0; i < CubeGeometry.Stickers.Count; i++)
         {
             var sticker = CubeGeometry.Stickers[i];
@@ -101,10 +118,10 @@ public static class CubeMoves
             }
 
             var target = new StickerPlacementKey(sticker.Position.RotateClockwise(axis), sticker.Normal.RotateClockwise(axis));
-            result[IndexByPlacement[target]] = state.Stickers[i];
+            result[IndexByPlacement[target]] = values[i];
         }
 
-        return new CubeState(result);
+        return result;
     }
 
     private readonly record struct StickerPlacementKey(GridVector Position, GridVector Normal);
