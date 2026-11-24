@@ -1,0 +1,98 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: osx-x64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION=0.0.0" >> "$GITHUB_ENV"
+          fi
+
+      - name: Test
+        run: dotnet test ArsStudio.slnx -c Release
+
+      - name: Publish
+        run: >
+          dotnet publish src/ArsStudio/ArsStudio.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:Version=$VERSION
+          -p:DebugType=none
+          -o publish
+
+      - name: Package for Windows
+        if: startsWith(matrix.rid, 'win')
+        run: |
+          mv publish "ARS Studio"
+          7z a "ars-studio-$VERSION-${{ matrix.rid }}.zip" "ARS Studio"
+
+      - name: Package for Linux
+        if: startsWith(matrix.rid, 'linux')
+        run: |
+          chmod +x publish/ArsStudio
+          mv publish ars-studio
+          tar -czf "ars-studio-$VERSION-${{ matrix.rid }}.tar.gz" ars-studio
+
+      - name: Package for macOS
+        if: startsWith(matrix.rid, 'osx')
+        run: |
+          packaging/macos/bundle.sh publish "$VERSION" dist
+          ditto -c -k --keepParent "dist/ARS Studio.app" "ars-studio-$VERSION-${{ matrix.rid }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ars-studio-${{ matrix.rid }}
+          path: |
+            ars-studio-*.zip
+            ars-studio-*.tar.gz
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes

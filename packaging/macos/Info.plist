@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>ARS Studio</string>
+    <key>CFBundleDisplayName</key>
+    <string>ARS Studio</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.arsproject.arsstudio</string>
+    <key>CFBundleExecutable</key>
+    <string>ArsStudio</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>__VERSION__</string>
+    <key>CFBundleVersion</key>
+    <string>__VERSION__</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSCameraUsageDescription</key>
+    <string>ARS Studio usa la videocamera per leggere i colori del cubo.</string>
+</dict>
+</plist>
