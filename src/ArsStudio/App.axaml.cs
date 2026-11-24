@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using System;
 using ArsStudio.Services;
+using ArsStudio.Services.MacOS;
 using ArsStudio.ViewModels;
 using ArsStudio.Views;
 
@@ -19,7 +21,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var window = new MainWindow();
-            var viewModel = new MainViewModel(new DialogService(window), new SerialMachineConnection());
+            var viewModel = new MainViewModel(new DialogService(window), new SerialMachineConnection(), CreateCameraService());
             window.DataContext = viewModel;
             desktop.MainWindow = window;
             desktop.Exit += (_, _) => viewModel.Dispose();
@@ -27,4 +29,7 @@ public partial class App : Application
 
         base.OnFrameworkInitializationCompleted();
     }
+
+    private static ICameraService CreateCameraService() =>
+        OperatingSystem.IsMacOS() ? new MacCameraService() : new FlashCapCameraService();
 }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ArsStudio.Controls;
 using ArsStudio.Core;
+using ArsStudio.Core.Scanning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -26,11 +27,11 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private bool _isPlaybackStep;
 
     public MainViewModel()
-        : this(null, null)
+        : this(null, null, null)
     {
     }
 
-    public MainViewModel(IDialogService? dialogs, IMachineConnection? machine)
+    public MainViewModel(IDialogService? dialogs, IMachineConnection? machine, ICameraService? camera)
     {
         _dialogs = dialogs;
         _machine = machine;
@@ -47,6 +48,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         Down = CreateFace();
         Faces = [Up, Left, Front, Right, Back, Down];
         Machine.SolveRequested = SolveWithoutPlaybackAsync;
+        Scan = new ScanViewModel(camera, ApplyScan, ShowMessageAsync, ShowSolve);
 
         RefreshSerialPorts();
     }
@@ -69,18 +71,15 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     [NotifyCanExecuteChangedFor(nameof(TightenGrippersCommand), nameof(SendSolutionCommand))]
     public partial bool IsMachineConnected { get; set; }
 
-    public IReadOnlyList<string> Cameras { get; } = [];
-
     [ObservableProperty]
     public partial CubeColor SelectedColor { get; set; }
 
     [ObservableProperty]
     public partial string? SelectedSerialPort { get; set; }
 
-    [ObservableProperty]
-    public partial string? SelectedCamera { get; set; }
-
     public MachineViewModel Machine { get; } = new();
+
+    public ScanViewModel Scan { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSolveTab), nameof(IsScanTab), nameof(IsMachineTab))]
@@ -137,18 +136,6 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _ => $"Soluzione · {MoveCount} mosse",
     };
 
-    [ObservableProperty]
-    public partial double Zoom { get; set; } = 1;
-
-    [ObservableProperty]
-    public partial decimal Brightness { get; set; }
-
-    [ObservableProperty]
-    public partial decimal Contrast { get; set; }
-
-    [ObservableProperty]
-    public partial decimal Saturation { get; set; }
-
     public CubeState CurrentState() => new(Faces.SelectMany(face => face.Colors));
 
     public void ApplyState(CubeState state)
@@ -163,8 +150,11 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         StopPlayback();
         Machine.Stop();
+        Scan.Dispose();
         _machine?.Dispose();
     }
+
+    partial void OnSelectedTabChanged(MainTab value) => Scan.IsActive = value == MainTab.Scan;
 
     partial void OnSelectedSerialPortChanged(string? value) => _ = ConnectAsync(value);
 
@@ -466,6 +456,22 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         toStep > fromStep
             ? _moves[fromStep]
             : _moves[toStep] with { QuarterTurns = 4 - _moves[toStep].QuarterTurns };
+
+    private void ApplyScan(ScanReading reading, IReadOnlyList<CubeFace> changed)
+    {
+        foreach (var face in changed)
+        {
+            Faces[(int)face].SetColors(reading.State.Face(face));
+        }
+
+        for (var sticker = 0; sticker < CubeState.StickerCount; sticker++)
+        {
+            Faces[sticker / CubeState.StickersPerFace].Stickers[sticker % CubeState.StickersPerFace].IsDoubtful =
+                reading.Doubtful.Contains(sticker);
+        }
+
+        OnStickerPainted();
+    }
 
     private void OnStickerPainted()
     {

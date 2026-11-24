@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ArsStudio.ViewModels"
+             xmlns:conv="using:ArsStudio.Converters"
              x:Class="ArsStudio.Views.ScanView"
              x:DataType="vm:MainViewModel">
 
@@ -8,24 +9,228 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*" Margin="10">
-        <Slider Height="20" Value="{Binding Zoom}" Minimum="1" Maximum="4" />
+    <UserControl.Styles>
+        <Style Selector="Border.cell">
+            <Setter Property="BorderBrush" Value="#B3FFFFFF" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ItemsControl.tracking Border.cell">
+            <Setter Property="CornerRadius" Value="100" />
+        </Style>
+        <Style Selector="ItemsControl.captured Border.cell">
+            <Setter Property="BorderBrush" Value="{StaticResource CubeGreenBrush}" />
+            <Setter Property="BorderThickness" Value="3" />
+        </Style>
+        <Style Selector="TextBlock.status">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFeatures" Value="+lnum" />
+            <Setter Property="LineHeight" Value="18" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{StaticResource PaperBrush}" />
+        </Style>
+        <Style Selector="Border.dot">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Background" Value="{StaticResource MutedPaperBrush}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.3" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.dot.ok">
+            <Setter Property="Background" Value="{StaticResource CubeGreenBrush}" />
+        </Style>
+        <Style Selector="Border.dot.bad">
+            <Setter Property="Background" Value="{StaticResource CubeRedBrush}" />
+        </Style>
+        <Style Selector="Button.step">
+            <Setter Property="Width" Value="NaN" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Button.step.done">
+            <Setter Property="Foreground" Value="{StaticResource PaperBrush}" />
+        </Style>
+        <Style Selector="Button.step:pointerover">
+            <Setter Property="Background" Value="#14EBEBEB" />
+        </Style>
+        <Style Selector="Button.step /template/ Border">
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Button.step /template/ ContentPresenter">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+    </UserControl.Styles>
 
-        <Panel Grid.Row="1" Margin="0,10,0,0">
-            <UniformGrid Rows="3" Columns="3"
-                         Width="40" Height="40"
-                         HorizontalAlignment="Left"
-                         VerticalAlignment="Top">
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-                <Button Theme="{StaticResource ScanPickerButton}" />
-            </UniformGrid>
+    <Grid ColumnDefinitions="*,280">
+        <Panel Margin="16">
+            <Viewbox Stretch="Uniform" StretchDirection="Both" IsVisible="{Binding Scan.HasPreview}">
+                <Panel Width="{Binding Scan.PreviewWidth}" Height="{Binding Scan.PreviewHeight}">
+                    <Image Source="{Binding Scan.Preview}" Stretch="Fill" />
+                    <ItemsControl ItemsSource="{Binding Scan.Cells}"
+                                  IsVisible="{Binding Scan.HasFace}"
+                                  Classes.captured="{Binding Scan.IsJustCaptured}"
+                                  Classes.tracking="{Binding Scan.IsTracking}">
+                        <ItemsControl.Styles>
+                            <Style Selector="ContentPresenter" x:DataType="vm:ScanCellViewModel">
+                                <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScanCellViewModel">
+                                <Border Classes="cell" Width="{Binding Size}" Height="{Binding Size}">
+                                    <Border Width="10"
+                                            Height="10"
+                                            CornerRadius="5"
+                                            BorderThickness="1.5"
+                                            BorderBrush="#E6FFFFFF"
+                                            Background="{Binding Color, Converter={x:Static conv:CubeColorToBrushConverter.Instance}}" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Panel>
+            </Viewbox>
+
+            <Border Background="{StaticResource CubeGreenBrush}"
+                    CornerRadius="13"
+                    Height="26"
+                    Padding="14,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    IsVisible="{Binding Scan.IsJustCaptured}">
+                <TextBlock Text="{Binding Scan.LastCaptured}"
+                           Foreground="White"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <TextBlock Classes="caption"
+                       Text="{Binding Scan.StatusText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding !Scan.HasPreview}" />
         </Panel>
+
+        <Border Grid.Column="1" Classes="sidePanel">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <StackPanel Margin="16,16,16,14" Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="section" Text="Stato" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Classes="caption" VerticalAlignment="Center">
+                                    <Run Text="{Binding Scan.ScannedCount}" />
+                                    <Run Text="di" />
+                                    <Run Text="{Binding Scan.FaceCount}" />
+                                </TextBlock>
+                                <Border Classes="dot"
+                                        Classes.ok="{Binding Scan.IsCubeValid}"
+                                        Classes.bad="{Binding Scan.IsCubeInvalid}"
+                                        VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                        <ProgressBar Height="3"
+                                     MinHeight="3"
+                                     MinWidth="0"
+                                     CornerRadius="2"
+                                     Background="#14EBEBEB"
+                                     Foreground="{StaticResource CubeGreenBrush}"
+                                     Minimum="0"
+                                     Maximum="{Binding Scan.FaceCount}"
+                                     Value="{Binding Scan.ScannedCount}" />
+                        <TextBlock Classes="status" Text="{Binding Scan.Instruction}" />
+                    </StackPanel>
+
+                    <Border Classes="rule" />
+
+                    <StackPanel Margin="16,14" Spacing="8">
+                        <TextBlock Classes="section" Text="Facce" />
+                        <ItemsControl ItemsSource="{Binding Scan.Steps}" Margin="-8,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ScanStepViewModel">
+                                    <Button Theme="{StaticResource SegmentButton}"
+                                            Classes="step"
+                                            Classes.done="{Binding IsDone}"
+                                            ToolTip.Tip="Clicca per rifare questa faccia"
+                                            Command="{Binding ClearCommand}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0">
+                                            <Border Width="12"
+                                                    Height="12"
+                                                    CornerRadius="3"
+                                                    VerticalAlignment="Center"
+                                                    Background="{Binding CenterColor, Converter={x:Static conv:CubeColorToBrushConverter.Instance}}" />
+                                            <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="{Binding Label}" VerticalAlignment="Center" />
+                                            <Path Grid.Column="2"
+                                                  Data="M0,4 L3,7 L9,0"
+                                                  Stroke="{StaticResource CubeGreenBrush}"
+                                                  StrokeThickness="1.8"
+                                                  StrokeLineCap="Round"
+                                                  StrokeJoin="Round"
+                                                  VerticalAlignment="Center"
+                                                  IsVisible="{Binding IsDone}" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Border Classes="rule" />
+
+                    <StackPanel Margin="16,14,16,16" Spacing="12">
+                        <TextBlock Classes="section" Text="Cubo letto" />
+                        <Viewbox Stretch="Uniform">
+                            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+                                <ContentControl Grid.Row="0" Grid.Column="1" Content="{Binding Up}" />
+                                <ContentControl Grid.Row="1" Grid.Column="0" Content="{Binding Left}" />
+                                <ContentControl Grid.Row="1" Grid.Column="1" Content="{Binding Front}" />
+                                <ContentControl Grid.Row="1" Grid.Column="2" Content="{Binding Right}" />
+                                <ContentControl Grid.Row="1" Grid.Column="3" Content="{Binding Back}" />
+                                <ContentControl Grid.Row="2" Grid.Column="1" Content="{Binding Down}" />
+                            </Grid>
+                        </Viewbox>
+                        <ItemsControl ItemsSource="{Binding Palette}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:PaletteItemViewModel">
+                                    <Button Theme="{StaticResource StickerButton}"
+                                            HorizontalAlignment="Center"
+                                            Background="{Binding Color, Converter={x:Static conv:CubeColorToBrushConverter.Instance}}"
+                                            Command="{Binding SelectCommand}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Classes="caption" TextWrapping="Wrap" Text="Per correggere: scegli un colore e clicca la casella" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </UserControl>

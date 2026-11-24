@@ -23,6 +23,7 @@ public class FaceViewModel : ViewModelBase
         foreach (var (sticker, color) in Stickers.Zip(colors))
         {
             sticker.Color = color;
+            sticker.IsDoubtful = false;
         }
     }
 }
