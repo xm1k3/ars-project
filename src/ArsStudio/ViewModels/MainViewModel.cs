@@ -22,6 +22,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly IMachineConnection? _machine;
     private IReadOnlyList<CubeState> _timeline = [];
     private IReadOnlyList<CubeMove> _moves = [];
+    private CubeState? _initialState;
+    private int _solveVersion;
     private CancellationTokenSource? _playback;
     private TimeSpan _stepDuration;
     private bool _isPlaybackStep;
@@ -103,37 +105,66 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public partial CubeSolution? LastSolution { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MoveCount), nameof(HasMoves), nameof(SolutionCaption))]
+    [NotifyPropertyChangedFor(nameof(MoveCount), nameof(HasMoves), nameof(SolutionCaption), nameof(StepText))]
     public partial IReadOnlyList<MoveChipViewModel> MoveChips { get; set; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StepText))]
     public partial int CurrentStep { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PlaybackSecondsText))]
     public partial double PlaybackSeconds { get; set; } = 1.5;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SolveMethodText), nameof(SolveMethodHint), nameof(IsOptimized), nameof(IsKociemba), nameof(IsLayers))]
+    public partial SolveMethod SolveMethod { get; set; } = SolveMethod.Optimized;
+
+    public string SolveMethodText => SolveMethod switch
+    {
+        SolveMethod.Kociemba => "Kociemba",
+        SolveMethod.Layers => "A strati",
+        _ => "Ottimizzato",
+    };
+
     public string PlaybackSecondsText =>
         PlaybackSeconds.ToString("0.#", CultureInfo.GetCultureInfo("it-IT")) + " s";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SolutionCaption))]
+    [NotifyPropertyChangedFor(nameof(SolutionCaption), nameof(ShowMoveList))]
     public partial bool ShowMachineCode { get; set; }
 
     public bool HasSolution => LastSolution is not null;
 
+    public bool ShowMoveList => !ShowMachineCode;
+
     public int MoveCount => MoveChips.Count;
 
     public bool HasMoves => MoveCount > 0;
+
+    public bool IsOptimized => SolveMethod == SolveMethod.Optimized;
+
+    public bool IsKociemba => SolveMethod == SolveMethod.Kociemba;
+
+    public bool IsLayers => SolveMethod == SolveMethod.Layers;
+
+    public string SolveMethodHint => SolveMethod switch
+    {
+        SolveMethod.Kociemba => "Due fasi: la prima soluzione trovata, di solito poco più di 20 mosse",
+        SolveMethod.Layers => "Il metodo dei principianti: croce, primo strato, strato centrale, ultimo strato",
+        _ => "Cerca la soluzione più corta possibile, di solito 20 mosse o meno",
+    };
+
+    public string StepText => $"Mossa {Math.Min(CurrentStep, MoveCount)} di {MoveCount}";
 
     public string MachineCode => LastSolution?.MachineCode ?? string.Empty;
 
     public string SolutionCaption => LastSolution switch
     {
         null => string.Empty,
-        { Moves: "" } => "Il cubo è già risolto",
-        _ when ShowMachineCode => $"Codice macchina · {MachineCode.Length} comandi",
-        _ => $"Soluzione · {MoveCount} mosse",
+        { Moves: "" } => "già risolto",
+        _ when ShowMachineCode => $"{MachineCode.Length} comandi",
+        _ => $"{MoveCount} mosse",
     };
 
     public CubeState CurrentState() => new(Faces.SelectMany(face => face.Colors));
@@ -221,25 +252,52 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
+    partial void OnSolveMethodChanged(SolveMethod value)
+    {
+        if (_initialState is not { } initial)
+        {
+            return;
+        }
+
+        StopPlayback();
+        SetFaces(initial);
+        _ = TrySolveAsync();
+    }
+
     private Task SolveWithoutPlaybackAsync() => TrySolveAsync();
 
     private async Task<bool> TrySolveAsync()
     {
         var state = CurrentState();
+        var version = ++_solveVersion;
         CubeSolution solution;
         try
         {
-            solution = await Task.Run(() => CubeSolver.Solve(state));
+            var method = SolveMethod;
+            solution = await Task.Run(() => CubeSolver.Solve(state, method));
         }
         catch (InvalidCubeException exception)
         {
-            await ShowMessageAsync(exception.Message);
+            if (version == _solveVersion)
+            {
+                await ShowMessageAsync(exception.Message);
+            }
+
+            return false;
+        }
+
+        if (version != _solveVersion)
+        {
             return false;
         }
 
         StopPlayback();
         _moves = CubeMoves.Split(solution.Moves).Select(CubeMove.Parse).ToArray();
         _timeline = BuildTimeline(CubeMoves.Normalize(state), _moves);
+        if (_moves.Count > 0)
+        {
+            _initialState = _timeline[0];
+        }
 
         ShowMachineCode = false;
         LastSolution = solution;
@@ -299,8 +357,17 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
+    private void SetSolveMethod(SolveMethod method) => SolveMethod = method;
+
+    [RelayCommand]
     private void SetPlaybackSeconds(string seconds) =>
         PlaybackSeconds = double.Parse(seconds, CultureInfo.InvariantCulture);
+
+    [RelayCommand]
+    private void ShowMoves() => ShowMachineCode = false;
+
+    [RelayCommand]
+    private void ShowCode() => ShowMachineCode = LastSolution is { Moves.Length: > 0 };
 
     [RelayCommand]
     private void ToggleSolutionFormat()
@@ -483,8 +550,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private void ClearSolution()
     {
         StopPlayback();
+        _solveVersion++;
         _timeline = [];
         _moves = [];
+        _initialState = null;
         MoveChips = [];
         LastSolution = null;
     }
