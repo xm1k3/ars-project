@@ -1,27 +1,81 @@
-# ARS Studio
+<p align="center">
+  <img src="src/ArsStudio/Assets/Images/logo.png" alt="ARS Studio" width="260">
+</p>
 
-This is Ars Studio, an Open Souce Software to solve your Rubik Cube in less than 25 moves.
-The Software is optimized and tested by our team of informatics and mechanics, it takes little to learn! And with the addition of ARS Color, it is possible to optimize the workflow for maximum efficiency.
+<p align="center">
+  Desktop app that scans, solves and animates a Rubik's cube, and drives the ARS solving machine over serial.
+</p>
 
-![](static/ars_screen1.png)
+<p align="center">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4" alt=".NET 10">
+  <img src="https://img.shields.io/badge/Avalonia-12-8B44AC" alt="Avalonia 12">
+  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey" alt="Platforms">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license">
+</p>
 
-# Optimization
+![Solution view](static/solution.png)
 
-ARS Studio has a perfect integration with the machine through serial communication for better results.
+## Features
 
-- The software’s completely open source and is gonna be multiplatform
-- It’s easy and fast setting up the cube state
-- Immediate support for .cst format
+- Set up the cube by hand on a 2D net or a 3D view, or load and save it as a `.cst` file.
+- Scan the cube with a webcam: each face is detected and stored automatically while you show it to the camera.
+- Invalid cubes are explained (missing colours, twisted corner, flipped edge, swapped pieces) instead of just rejected.
+- Three solving methods, with a step-by-step animation of every move.
+- 3D simulation of the ARS machine executing the solution, with timing.
+- Sends the machine code to the hardware over a serial port.
 
-# 3 Steps to setup the cube
+## Solving methods
 
-In this section we’ll show you how easy and intuitive it is to work with ARS Studio in 3 simple steps.
- - First of all you have to choose a color, you can use the keyboard and the numbers from 1 to 6
- - After choosing the color, insert it in it’s position inside the grid
- - Press the “Risolvi” button to have the software solve one of the fastest and most effective algorithms there are.
+| Method | What it does | Typical length |
+| --- | --- | --- |
+| Optimized | Keeps searching for a shorter two-phase solution for 1.5 seconds | about 19 moves |
+| Kociemba | First solution found by the two-phase algorithm | about 21 moves |
+| Layers | Beginner method: cross, first layer, middle layer, last layer | about 120 moves |
 
- ![](static/ars_screen2.png)
+Lengths are averages measured on random scrambles.
 
-# How to start
+## Screenshots
 
-You have to go in repository: **ARS Studio\ARS Studio\bin\Debug** and click on **Ars Studio.exe**
+| 2D net | 3D view |
+| --- | --- |
+| ![2D net](static/solve-2d.png) | ![3D view](static/solve-3d.png) |
+
+![Machine simulation](static/machine.png)
+
+## Getting started
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
+
+```sh
+git clone https://github.com/xm1k3/ars-project.git
+cd ars-project
+dotnet run --project src/ArsStudio
+```
+
+Run the tests:
+
+```sh
+dotnet test ArsStudio.slnx
+```
+
+Development and testing happen on macOS. Windows and Linux are supported by the code but have not been verified yet.
+
+## Usage
+
+1. Pick a colour from the palette (keys `1` to `6`, `0` for empty) and click the stickers, or open the Scan tab and show each face to the camera.
+2. Choose a method and press **Risolvi**.
+3. Step through the moves with the arrow keys, or open the Machine tab to watch the machine do it.
+4. With the machine connected, select its serial port and press **Invia**.
+
+## Project layout
+
+| Path | Content |
+| --- | --- |
+| `src/ArsStudio` | Avalonia application |
+| `src/ArsStudio.Core` | Cube model, solvers, scanning and machine logic |
+| `src/TwoPhaseSolver` | C# implementation of Kociemba's two-phase algorithm |
+| `tests/ArsStudio.Core.Tests` | Unit tests |
+
+## License
+
+ARS Studio is distributed under the [MIT License](LICENSE).
