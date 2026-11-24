@@ -3,7 +3,7 @@
         x:Class="ArsStudio.Views.MessageWindow"
         Title="ARS Studio"
         Icon="/Assets/Images/icon.png"
-        Width="320"
+        Width="440"
         SizeToContent="Height"
         CanResize="False"
         ShowInTaskbar="False"

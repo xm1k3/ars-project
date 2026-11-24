@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using TwoPhaseSolver;
@@ -28,21 +29,51 @@ public static class CubeSolver
             return new CubeSolution("", "");
         }
 
-        Move solution;
+        var moves = TwoPhase(cube, MaxDepth, TimeoutMilliseconds);
+
+        return new CubeSolution(moves, MachineEncoder.Encode(orientation, moves));
+    }
+
+    private static string TwoPhase(Cube cube, int maxDepth, int timeout)
+    {
         try
         {
             lock (SearchLock)
             {
-                solution = Search.fullSolve(cube, MaxDepth, TimeoutMilliseconds);
+                return Search.fullSolve(cube, maxDepth, timeout).ToString();
             }
         }
         catch (Exception exception) when (exception is TimeoutException || exception.GetType() == typeof(Exception))
         {
             throw new InvalidCubeException("Non è stato possibile trovare una soluzione.");
         }
+    }
 
-        var moves = solution.ToString();
-        return new CubeSolution(moves, MachineEncoder.Encode(orientation, moves));
+    public static bool IsSolvable(CubeState state)
+    {
+        if (state.Stickers.Contains(CubeColor.Empty) ||
+            state.Stickers.GroupBy(color => color).Any(group => group.Count() != CubeState.StickersPerFace) ||
+            Enumerable.Range(0, CubeState.FaceCount).Select(face => state.Face((CubeFace)face)[4]).Distinct().Count() != CubeState.FaceCount)
+        {
+            return false;
+        }
+
+        if (CubeDiagnostics.HasMirroredCorner(state))
+        {
+            return false;
+        }
+
+        try
+        {
+            var facelets = ToFacelets(state);
+            CubeOrientation.Normalize(facelets);
+            EnsureSolvable(CubieMapper.ToCube(facelets));
+            return true;
+        }
+        catch (InvalidCubeException)
+        {
+            return false;
+        }
     }
 
     private static int[] ToFacelets(CubeState state)
@@ -68,16 +99,30 @@ public static class CubeSolver
         var cornerPositions = cube.corners.Select(cubie => (int)cubie.pos).ToArray();
         var edgePositions = cube.edges.Select(cubie => (int)cubie.pos).ToArray();
 
-        var solvable =
-            cornerPositions.Distinct().Count() == cornerPositions.Length &&
-            edgePositions.Distinct().Count() == edgePositions.Length &&
-            cube.corners.Sum(cubie => cubie.orient) % 3 == 0 &&
-            cube.edges.Sum(cubie => cubie.orient) % 2 == 0 &&
-            Parity(cornerPositions) == Parity(edgePositions);
-
-        if (!solvable)
+        var problems = new List<string>();
+        if (cornerPositions.Distinct().Count() != cornerPositions.Length || edgePositions.Distinct().Count() != edgePositions.Length)
         {
-            throw new InvalidCubeException("Il cubo non è risolvibile, controlla i colori inseriti.");
+            problems.Add("Alcuni pezzi compaiono due volte.");
+        }
+
+        if (cube.corners.Sum(cubie => cubie.orient) % 3 != 0)
+        {
+            problems.Add("Un angolo risulta ruotato su se stesso: controlla l'ordine dei colori sugli angoli.");
+        }
+
+        if (cube.edges.Sum(cubie => cubie.orient) % 2 != 0)
+        {
+            problems.Add("Uno spigolo risulta capovolto: controlla i due colori di ogni spigolo.");
+        }
+
+        if (problems.Count == 0 && Parity(cornerPositions) != Parity(edgePositions))
+        {
+            problems.Add("Due pezzi risultano scambiati tra loro: controlla gli spigoli o gli angoli con colori simili.");
+        }
+
+        if (problems.Count > 0)
+        {
+            throw new InvalidCubeException("Il cubo non è risolvibile." + Environment.NewLine + string.Join(Environment.NewLine, problems));
         }
     }
 
