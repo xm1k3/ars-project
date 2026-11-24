@@ -12,10 +12,11 @@ public static class CubeSolver
 {
     private const int MaxDepth = 30;
     private const int TimeoutMilliseconds = 6000;
+    private const int OptimizeMilliseconds = 1500;
 
     private static readonly Lock SearchLock = new();
 
-    public static CubeSolution Solve(CubeState state)
+    public static CubeSolution Solve(CubeState state, SolveMethod method = SolveMethod.Kociemba)
     {
         CubeValidator.Validate(state);
 
@@ -29,7 +30,12 @@ public static class CubeSolver
             return new CubeSolution("", "");
         }
 
-        var moves = TwoPhase(cube, MaxDepth, TimeoutMilliseconds);
+        var moves = method switch
+        {
+            SolveMethod.Layers => LayerSolver.Solve(CubeMoves.Normalize(state)),
+            SolveMethod.Optimized => Shorten(cube, TwoPhase(cube, MaxDepth, TimeoutMilliseconds)),
+            _ => TwoPhase(cube, MaxDepth, TimeoutMilliseconds),
+        };
 
         return new CubeSolution(moves, MachineEncoder.Encode(orientation, moves));
     }
@@ -47,6 +53,26 @@ public static class CubeSolver
         {
             throw new InvalidCubeException("Non è stato possibile trovare una soluzione.");
         }
+    }
+
+    private static string Shorten(Cube cube, string moves)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        while (watch.ElapsedMilliseconds < OptimizeMilliseconds)
+        {
+            var length = CubeMoves.Split(moves).Count;
+            var remaining = (int)(OptimizeMilliseconds - watch.ElapsedMilliseconds);
+            try
+            {
+                moves = TwoPhase(cube, length - 1, remaining);
+            }
+            catch (InvalidCubeException)
+            {
+                break;
+            }
+        }
+
+        return moves;
     }
 
     public static bool IsSolvable(CubeState state)
