@@ -62,7 +62,7 @@ public class CubeSolverTests
 
         var exception = Assert.Throws<InvalidCubeException>(() => CubeSolver.Solve(new CubeState(stickers)));
 
-        Assert.Equal("Ci sono caselle senza colore.", exception.Message);
+        Assert.Contains("C'è 1 casella senza colore.", exception.Message);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class CubeSolverTests
 
         var exception = Assert.Throws<InvalidCubeException>(() => CubeSolver.Solve(new CubeState(stickers)));
 
-        Assert.Equal("Ogni colore deve comparire esattamente 9 volte.", exception.Message);
+        Assert.Contains("Il rosso compare 10 volte invece di 9.", exception.Message);
     }
 
     [Fact]
