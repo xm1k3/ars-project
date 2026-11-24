@@ -3,6 +3,7 @@
         xmlns:vm="using:ArsStudio.ViewModels"
         xmlns:m="using:ArsStudio.Core"
         xmlns:views="using:ArsStudio.Views"
+        xmlns:conv="using:ArsStudio.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="450"
@@ -43,20 +44,38 @@
             <Setter Property="Margin" Value="10,0,0,0" />
         </Style>
         <Style Selector="ComboBox.compact">
-            <Setter Property="MinHeight" Value="20" />
-            <Setter Property="Padding" Value="6,1" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
-        </Style>
-        <Style Selector="NumericUpDown">
-            <Setter Property="MinHeight" Value="24" />
-            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="8,0,0,0" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#26000000" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="NumericUpDown /template/ TextBox">
-            <Setter Property="MinHeight" Value="24" />
-            <Setter Property="Padding" Value="6,2" />
+        <Style Selector="Grid.field">
+            <Setter Property="Margin" Value="10,4,8,0" />
+        </Style>
+        <Style Selector="Grid.field > Button">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.fieldLabel">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.fieldValue">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFeatures" Value="+lnum" />
+            <Setter Property="Foreground" Value="#8C161B22" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="StackPanel.adjust Slider">
+            <Setter Property="Margin" Value="0,-8,0,-4" />
         </Style>
         <Style Selector="StackPanel.windowControls Path">
             <Setter Property="Width" Value="6" />
@@ -114,15 +133,13 @@
                         <Button Theme="{StaticResource MenuItemButton}" Content="Svuota cubo" Command="{Binding ClearCubeCommand}" />
 
                         <TextBlock Classes="heading" Text="Seriale" Margin="10,10,0,0" />
-                        <Grid ColumnDefinitions="*,Auto" Margin="10,0,6,0">
+                        <Grid Classes="field" ColumnDefinitions="*,Auto">
                             <ComboBox Classes="compact"
-                                      HorizontalAlignment="Stretch"
                                       PlaceholderText="Nessuna porta"
                                       ItemsSource="{Binding SerialPorts}"
                                       SelectedItem="{Binding SelectedSerialPort}" />
                             <Button Grid.Column="1"
                                     Theme="{StaticResource IconButton}"
-                                    Margin="4,0,0,0"
                                     ToolTip.Tip="Aggiorna porte"
                                     Command="{Binding RefreshSerialPortsCommand}">
                                 <Path Data="M10,3 A5,5 0 1 0 11,8 M10,0 L10,3 L7,3"
@@ -135,33 +152,64 @@
                     </StackPanel>
 
                     <StackPanel IsVisible="{Binding IsScanTab}">
-                        <ComboBox Classes="compact"
-                                  Margin="10,0"
-                                  HorizontalAlignment="Stretch"
-                                  ItemsSource="{Binding Cameras}"
-                                  SelectedItem="{Binding SelectedCamera}" />
-                        <Border Margin="10,0"
-                                Height="95"
-                                BorderThickness="1"
-                                BorderBrush="{StaticResource DividerBrush}" />
-
-                        <Button Theme="{StaticResource MenuItemButton}" Content="Istantanea" />
-                        <Button Theme="{StaticResource MenuItemButton}" Content="Auto griglia" />
-                        <Button Theme="{StaticResource MenuItemButton}" Content="Stringi pinze" />
+                        <TextBlock Classes="heading" Text="Videocamera" />
+                        <Grid Classes="field" ColumnDefinitions="*,Auto">
+                            <ComboBox Classes="compact"
+                                      PlaceholderText="Nessuna videocamera"
+                                      ItemsSource="{Binding Scan.Cameras}"
+                                      SelectedItem="{Binding Scan.SelectedCamera}" />
+                            <Button Grid.Column="1"
+                                    Theme="{StaticResource IconButton}"
+                                    ToolTip.Tip="Aggiorna videocamere"
+                                    Command="{Binding Scan.RefreshCamerasCommand}">
+                                <Path Data="M10,3 A5,5 0 1 0 11,8 M10,0 L10,3 L7,3"
+                                      Stroke="{StaticResource InkBrush}"
+                                      StrokeThickness="1.4"
+                                      StrokeLineCap="Round"
+                                      StrokeJoin="Round" />
+                            </Button>
+                        </Grid>
+                        <TextBlock Classes="heading" Text="Scansione" Margin="10,10,0,0" />
+                        <Button Theme="{StaticResource MenuItemButton}"
+                                Content="{Binding Scan.IsFrozen, Converter={x:Static views:ScanLabels.Freeze}}"
+                                Command="{Binding Scan.ToggleFreezeCommand}" />
+                        <Button Theme="{StaticResource MenuItemButton}"
+                                Content="{Binding Scan.IsAutoCapture, Converter={x:Static views:ScanLabels.AutoCapture}}"
+                                Command="{Binding Scan.ToggleAutoCaptureCommand}" />
+                        <Button Theme="{StaticResource MenuItemButton}"
+                                Content="{Binding Scan.IsTracking, Converter={x:Static views:ScanLabels.Tracking}}"
+                                ToolTip.Tip="Automatico: il cubo viene cercato in tutta l'immagine. Griglia fissa: metti la faccia dentro i riquadri"
+                                Command="{Binding Scan.ToggleTrackingCommand}" />
+                        <Button Theme="{StaticResource MenuItemButton}" Content="Stringi pinze" Command="{Binding TightenGrippersCommand}" />
 
                         <Separator Margin="10,0" Background="{StaticResource DividerBrush}" />
 
-                        <Button Theme="{StaticResource MenuItemButton}" Content="Scansiona" />
-                        <Button Theme="{StaticResource MenuItemButton}" Content="Automatico" />
+                        <Button Theme="{StaticResource MenuItemButton}" Content="Scansiona" Command="{Binding Scan.CaptureCommand}" />
+                        <Button Theme="{StaticResource MenuItemButton}" Content="Ricomincia" Command="{Binding Scan.RestartCommand}" />
 
-                        <Grid ColumnDefinitions="15,*" RowDefinitions="Auto,Auto,Auto" Margin="10,1,10,10" RowSpacing="1">
-                            <TextBlock Grid.Row="0" Text="L" VerticalAlignment="Center" />
-                            <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding Brightness}" Minimum="-100" Maximum="100" />
-                            <TextBlock Grid.Row="1" Text="C" VerticalAlignment="Center" />
-                            <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Contrast}" Minimum="-100" Maximum="100" />
-                            <TextBlock Grid.Row="2" Text="S" VerticalAlignment="Center" />
-                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Saturation}" Minimum="-100" Maximum="100" />
-                        </Grid>
+                        <TextBlock Classes="heading" Text="Immagine" Margin="10,10,0,0" />
+                        <StackPanel Classes="adjust" Margin="10,6,10,10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Classes="fieldLabel" Text="Zoom" />
+                                <TextBlock Grid.Column="1" Classes="fieldValue" Text="{Binding Scan.Zoom, StringFormat={}{0:0.0}×}" />
+                            </Grid>
+                            <Slider Minimum="1" Maximum="4" Value="{Binding Scan.Zoom}" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Classes="fieldLabel" Text="Luminosità" />
+                                <TextBlock Grid.Column="1" Classes="fieldValue" Text="{Binding Scan.Brightness, StringFormat={}{0:0}}" />
+                            </Grid>
+                            <Slider Minimum="-100" Maximum="100" Value="{Binding Scan.Brightness}" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Classes="fieldLabel" Text="Contrasto" />
+                                <TextBlock Grid.Column="1" Classes="fieldValue" Text="{Binding Scan.Contrast, StringFormat={}{0:0}}" />
+                            </Grid>
+                            <Slider Minimum="-100" Maximum="100" Value="{Binding Scan.Contrast}" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Classes="fieldLabel" Text="Saturazione" />
+                                <TextBlock Grid.Column="1" Classes="fieldValue" Text="{Binding Scan.Saturation, StringFormat={}{0:0}}" />
+                            </Grid>
+                            <Slider Minimum="-100" Maximum="100" Value="{Binding Scan.Saturation}" />
+                        </StackPanel>
                     </StackPanel>
                 </Panel>
             </ScrollViewer>

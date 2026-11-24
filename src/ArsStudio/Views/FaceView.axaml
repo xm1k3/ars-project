@@ -15,6 +15,7 @@
             <DataTemplate x:DataType="vm:StickerViewModel">
                 <Button Theme="{StaticResource StickerButton}"
                         Margin="1"
+                        Classes.doubt="{Binding IsDoubtful}"
                         Background="{Binding Color, Converter={x:Static conv:CubeColorToBrushConverter.Instance}}"
                         Command="{Binding PaintCommand}" />
             </DataTemplate>

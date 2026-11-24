@@ -97,9 +97,21 @@
                             </Transitions>
                         </Border.Transitions>
                     </Border>
+                    <Border Name="Doubt"
+                            Width="10"
+                            Height="10"
+                            CornerRadius="5"
+                            Background="White"
+                            BorderBrush="Black"
+                            BorderThickness="2"
+                            IsHitTestVisible="False"
+                            IsVisible="False" />
                 </Panel>
             </ControlTemplate>
         </Setter>
+        <Style Selector="^.doubt /template/ Border#Doubt">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
         <Style Selector="^:pointerover /template/ Border#Over">
             <Setter Property="Opacity" Value="0.15" />
         </Style>

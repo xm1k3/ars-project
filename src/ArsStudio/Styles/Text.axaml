@@ -8,4 +8,29 @@
         <Setter Property="FontFeatures" Value="+lnum" />
         <Setter Property="Foreground" Value="{DynamicResource MutedPaperBrush}" />
     </Style>
+
+    <Style Selector="TextBlock.section">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontFeatures" Value="+lnum" />
+        <Setter Property="Foreground" Value="{DynamicResource PaperBrush}" />
+    </Style>
+
+    <Style Selector="Border.sidePanel">
+        <Setter Property="Background" Value="#0AEBEBEB" />
+        <Setter Property="BorderBrush" Value="#14EBEBEB" />
+        <Setter Property="BorderThickness" Value="1,1,0,0" />
+        <Setter Property="CornerRadius" Value="10,0,0,0" />
+    </Style>
+
+    <Style Selector="Border.rule">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Background" Value="#14EBEBEB" />
+    </Style>
+
+    <Style Selector="Border.segments">
+        <Setter Property="Background" Value="#14EBEBEB" />
+        <Setter Property="CornerRadius" Value="13" />
+        <Setter Property="Padding" Value="2" />
+    </Style>
 </Styles>

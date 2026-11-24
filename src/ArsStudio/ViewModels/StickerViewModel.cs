@@ -20,9 +20,13 @@ public partial class StickerViewModel : ViewModelBase
     [ObservableProperty]
     public partial CubeColor Color { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsDoubtful { get; set; }
+
     [RelayCommand]
     private void Paint()
     {
+        IsDoubtful = false;
         Color = _selectedColor();
         _painted();
     }
