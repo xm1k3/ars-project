@@ -32,9 +32,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -78,7 +78,7 @@ jobs:
           packaging/macos/bundle.sh publish "$VERSION" dist
           ditto -c -k --keepParent "dist/ARS Studio.app" "ars-studio-$VERSION-${{ matrix.rid }}.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ars-studio-${{ matrix.rid }}
           path: |
@@ -91,7 +91,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
